@@ -120,7 +120,7 @@ const RatioLineChart: React.FC<RatioLineChartProps> = ({
         
         const layout = {
           height: 300,
-          margin: { t: 40, r: 30, l: 60, b: 60 },
+          margin: { t: 40, r: 30, l: 60, b: 70 }, // 增加了下边距从60到70，使X轴标签向下移动
           title: {
             text: title,
             font: {
@@ -130,7 +130,7 @@ const RatioLineChart: React.FC<RatioLineChartProps> = ({
           xaxis: {
             title: {
               text: 'Time (Hourly)',
-              standoff: 20,
+              standoff: 30, // 增加standoff从20到30，使X轴标签向下移动
             },
             tickangle: -45
           },

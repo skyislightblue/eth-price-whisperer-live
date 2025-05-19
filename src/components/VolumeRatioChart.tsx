@@ -32,12 +32,12 @@ const VolumeRatioChart: React.FC<VolumeRatioChartProps> = ({ data, whaleMode = f
     'ETH/USDC Buy/Sell Volume Ratio (From Uniswap V3)';
   
   const tradeChartTitle = whaleMode ? 
-    'Number of Whale Trades Per Hour' : 
-    'Number of Trades Per Hour';
+    'Number of Whale Trades Per Hour (Uniswap)' : 
+    'Number of Trades Per Hour (Uniswap)';
 
   return (
     <TooltipProvider>
-      <div className="space-y-6"> {/* Increased spacing from y-4 to y-6 */}
+      <div className="space-y-8"> {/* 增加间距从y-6到y-8 */}
         {formattedData.length > 0 && (
           <>
             <RatioLineChart 
