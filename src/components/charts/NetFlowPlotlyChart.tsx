@@ -60,76 +60,72 @@ const NetFlowPlotlyChart: React.FC<NetFlowPlotlyChartProps> = ({
         // Create annotations for divergences
         const annotations = combinedData
           .filter(point => point.divergence)
-          .map((point) => ({
-            x: point.timestamp,
-            y: point.divergenceType === DivergenceType.INFLOW_PRICE_DOWN ? 
-                prices[combinedData.findIndex(d => d.timestamp === point.timestamp)] : 
-                prices[combinedData.findIndex(d => d.timestamp === point.timestamp)],
-            xref: 'x',
-            yref: 'y',
-            text: point.divergenceType === DivergenceType.INFLOW_PRICE_DOWN ? '↓' : '↑',
-            showarrow: true,
-            arrowhead: 6,
-            arrowsize: 1.5,
-            arrowwidth: 2,
-            arrowcolor: point.divergenceType === DivergenceType.INFLOW_PRICE_DOWN ? '#ea384c' : '#2e7d32',
-            ax: 0,
-            ay: point.divergenceType === DivergenceType.INFLOW_PRICE_DOWN ? -30 : 30,
-            hovertext: point.divergenceMessage,
-            hoverlabel: { 
+          .map((point) => {
+            const index = combinedData.findIndex(d => d.timestamp.getTime() === point.timestamp.getTime());
+            const price = prices[index];
+            
+            return {
+              x: point.timestamp,
+              y: price,
+              xref: 'x',
+              yref: 'y',
+              text: point.divergenceType === DivergenceType.INFLOW_PRICE_DOWN ? '↓' : '↑',
+              showarrow: true,
+              arrowhead: 6,
+              arrowsize: 1.5,
+              arrowwidth: 2,
+              arrowcolor: point.divergenceType === DivergenceType.INFLOW_PRICE_DOWN ? '#ea384c' : '#2e7d32',
+              ax: 0,
+              ay: point.divergenceType === DivergenceType.INFLOW_PRICE_DOWN ? -30 : 30,
               bgcolor: point.divergenceType === DivergenceType.INFLOW_PRICE_DOWN ? '#ea384c' : '#2e7d32',
-              font: { color: '#ffffff' }
-            },
-            font: {
-              size: 18,
-              color: 'white'
-            }
-          }));
+              bordercolor: "#ffffff",
+              borderwidth: 1,
+              borderpad: 5,
+              font: { color: '#ffffff', size: 16 },
+              captureevents: true,
+              hovertext: point.divergenceMessage,
+            };
+          });
         
-        // Define layout with proper typing for shapes
+        // Define layout
         const layout: Partial<PlotlyTypes.Layout> = {
-          title: {
-            text: 'Net ETH Flow vs Price',
-            font: {
-              size: 20,
-              family: 'system-ui, sans-serif'
-            },
-            y: 0.98,
-          },
-          height: 400, // Increased height for better readability
-          margin: { t: 60, r: 70, l: 70, b: 120 }, // Adjusted margins for better spacing
+          title: null, // Remove title from chart itself - will be in parent component
+          height: 400,
+          margin: { t: 30, r: 80, l: 80, b: 70 }, 
           xaxis: {
             title: {
               text: 'Time (UTC)',
-              standoff: 40, // Increased standoff for more space
+              standoff: 20,
               font: {
-                size: 14,
+                size: 13,
+                color: '#666'
               }
             },
             showgrid: false,
+            zeroline: false
           },
           yaxis: {
             title: {
               text: 'ETH Price (USD)',
-              standoff: 10,
+              standoff: 20,
               font: {
-                size: 14,
+                size: 13,
                 color: '#F97316'
               }
             },
             titlefont: { color: '#F97316' },
             tickfont: { color: '#F97316' },
             side: 'left',
-            zeroline: true,
-            zerolinecolor: '#ccc',
-            gridcolor: 'rgba(245, 158, 11, 0.1)',
+            zeroline: false,
+            gridcolor: 'rgba(255,255,255,0.1)',
+            fixedrange: false
           },
           yaxis2: {
             title: {
               text: 'Net Inflow Ratio (Buy/Sell)',
-              standoff: 10,
+              standoff: 20,
               font: {
-                size: 14,
+                size: 13,
                 color: '#9b87f5'
               }
             },
@@ -139,23 +135,25 @@ const NetFlowPlotlyChart: React.FC<NetFlowPlotlyChartProps> = ({
             overlaying: 'y',
             showgrid: false,
             range: [0, 1], // Fixed range from 0 to 1 for normalized values
+            fixedrange: false
           },
           showlegend: true,
           legend: {
             orientation: 'h',
-            y: -0.17, // Position legend at the bottom
-            x: 0.5, // Centered
+            y: -0.2,
+            x: 0.5,
             xanchor: 'center',
             yanchor: 'top',
-            font: {
-              size: 14
-            }
+            bgcolor: 'rgba(255,255,255,0.5)',
+            bordercolor: 'rgba(0,0,0,0.1)',
+            borderwidth: 1,
+            font: { size: 12 }
           },
           plot_bgcolor: 'rgba(0,0,0,0)',
           paper_bgcolor: 'rgba(0,0,0,0)',
           hovermode: 'closest',
           annotations: annotations,
-          shapes: [] as Array<Partial<PlotlyTypes.Shape>> // Initialize with empty array with proper typing
+          shapes: [] as Array<Partial<PlotlyTypes.Shape>>
         };
 
         // Add shapes for divergence zones
@@ -174,9 +172,7 @@ const NetFlowPlotlyChart: React.FC<NetFlowPlotlyChartProps> = ({
               y1: 1,
               fillcolor: point.divergenceType === DivergenceType.INFLOW_PRICE_DOWN ? 
                 'rgba(234, 56, 76, 0.1)' : 'rgba(46, 125, 50, 0.1)',
-              line: {
-                width: 0
-              }
+              line: { width: 0 }
             });
           }
           return acc;
@@ -204,9 +200,7 @@ const NetFlowPlotlyChart: React.FC<NetFlowPlotlyChartProps> = ({
     loadPlotly();
   }, [combinedData, whaleMode]);
 
-  return (
-    <div ref={chartRef} className="w-full h-full" />
-  );
+  return <div ref={chartRef} className="w-full h-full" />;
 };
 
 export default NetFlowPlotlyChart;

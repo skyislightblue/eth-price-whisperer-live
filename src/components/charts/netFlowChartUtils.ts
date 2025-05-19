@@ -92,15 +92,13 @@ export const findMatchingDataPoints = (
   });
 
   // Detect divergences (when net flow and price move in opposite directions)
+  // Improved detection logic to better match the reference image
   for (let i = 1; i < combinedData.length; i++) {
-    const netFlowDelta = combinedData[i].netFlow - combinedData[i - 1].netFlow;
+    const netFlowDelta = combinedData[i].normalizedNetFlow! - combinedData[i - 1].normalizedNetFlow!;
     const priceDelta = combinedData[i].price - combinedData[i - 1].price;
     
-    // Check if significant enough movement and in opposite directions
-    const isSignificantNetFlow = Math.abs(netFlowDelta) > 100000; // $100K change
-    const isSignificantPrice = Math.abs(priceDelta) > 5; // $5 price change
-    
-    if (isSignificantNetFlow && isSignificantPrice) {
+    // Check for significant opposite movements
+    if (Math.abs(netFlowDelta) > 0.05 && Math.abs(priceDelta) > 2) {
       if (netFlowDelta > 0 && priceDelta < 0) {
         // Positive net inflow but price dropping
         combinedData[i].divergence = true;

@@ -35,7 +35,12 @@ const NetFlowPriceChart: React.FC<NetFlowPriceChartProps> = ({
   const hasData = volumeData.length > 0 && priceData.length > 0;
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col relative">
+      {/* Chart title moved here from plotly component */}
+      <h3 className="text-xl font-medium text-gray-800 mb-2 text-center">
+        Net ETH Flow vs Price
+      </h3>
+      
       <div className="flex-grow">
         {hasData && combinedData.length > 0 ? (
           <NetFlowPlotlyChart 
