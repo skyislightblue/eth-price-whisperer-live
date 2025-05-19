@@ -5,6 +5,8 @@ interface VolumeChartProps {
   data: {
     timestamp: number;
     volumeUSD: number;
+    buyVolume?: number;
+    sellVolume?: number;
   }[];
 }
 
@@ -24,22 +26,40 @@ const VolumeChart: React.FC<VolumeChartProps> = ({ data }) => {
           return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         });
         
-        const volumes = data.map(item => item.volumeUSD);
+        const buyVolumes = data.map(item => item.buyVolume || 0);
+        const sellVolumes = data.map(item => item.sellVolume || 0);
         
-        const trace = {
+        const buyTrace = {
           x: timestamps,
-          y: volumes,
+          y: buyVolumes,
           type: 'bar',
+          name: 'Buy ETH',
           marker: {
-            color: 'rgb(75, 192, 192)',
+            color: 'rgba(75, 192, 75, 0.8)', // Green for buys
           },
-          name: 'ETH/USDC Volume',
-          hovertemplate: '$%{y:.2f}<extra></extra>'
+          hovertemplate: '$%{y:.2f}<extra>Buy ETH</extra>'
+        };
+        
+        const sellTrace = {
+          x: timestamps,
+          y: sellVolumes,
+          type: 'bar',
+          name: 'Sell ETH',
+          marker: {
+            color: 'rgba(255, 99, 99, 0.8)', // Red for sells
+          },
+          hovertemplate: '$%{y:.2f}<extra>Sell ETH</extra>'
         };
         
         const layout = {
           height: 300,
-          margin: { t: 10, r: 30, l: 100, b: 60 }, // Increased left margin for y-axis labels
+          margin: { t: 30, r: 30, l: 100, b: 60 }, // Increased left margin for y-axis labels and top margin for title
+          title: {
+            text: 'Uniswap ETH Trading Volume',
+            font: {
+              size: 14,
+            }
+          },
           xaxis: {
             title: {
               text: 'Time (Hourly)',
@@ -59,11 +79,17 @@ const VolumeChart: React.FC<VolumeChartProps> = ({ data }) => {
             },
             nticks: 8, // Limit number of ticks to avoid overcrowding
           },
-          barmode: 'group',
+          barmode: 'stack', // Stack the buy and sell volumes
           bargap: 0.15,
           plot_bgcolor: 'rgba(0,0,0,0)',
           paper_bgcolor: 'rgba(0,0,0,0)',
           hovermode: 'closest',
+          legend: {
+            orientation: 'h', 
+            xanchor: 'center',
+            x: 0.5,
+            y: 1.05
+          }
         };
         
         const config = {
@@ -71,7 +97,7 @@ const VolumeChart: React.FC<VolumeChartProps> = ({ data }) => {
           displayModeBar: false,
         };
         
-        Plotly.newPlot(chartRef.current, [trace], layout, config);
+        Plotly.newPlot(chartRef.current, [buyTrace, sellTrace], layout, config);
         
         // Cleanup
         return () => {

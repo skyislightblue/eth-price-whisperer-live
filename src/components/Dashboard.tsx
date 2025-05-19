@@ -158,7 +158,7 @@ const Dashboard = () => {
             </div>
           </div>
           
-          {/* Volume Chart Section */}
+          {/* Volume Chart Section - Updated with Buy/Sell distinction */}
           <div className="bg-white rounded-lg shadow p-4">
             <h3 className="text-lg font-medium text-gray-800 mb-4">24 Hour ETH/USDC Trading Volume</h3>
             <div className="h-80">
