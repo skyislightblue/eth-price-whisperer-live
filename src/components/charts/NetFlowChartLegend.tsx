@@ -19,7 +19,7 @@ const NetFlowChartLegend: React.FC<NetFlowChartLegendProps> = ({
   }
 
   return (
-    <div className="mt-2 text-sm text-gray-600">
+    <div className="mt-4 text-sm text-gray-600">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <div className="flex items-center">
