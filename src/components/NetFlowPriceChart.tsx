@@ -35,13 +35,15 @@ const NetFlowPriceChart: React.FC<NetFlowPriceChartProps> = ({
   const hasData = volumeData.length > 0 && priceData.length > 0;
 
   return (
-    <div className="h-full">
-      {hasData && combinedData.length > 0 ? (
-        <NetFlowPlotlyChart 
-          combinedData={combinedData} 
-          whaleMode={whaleMode}
-        />
-      ) : null}
+    <div className="h-full flex flex-col">
+      <div className="flex-grow">
+        {hasData && combinedData.length > 0 ? (
+          <NetFlowPlotlyChart 
+            combinedData={combinedData} 
+            whaleMode={whaleMode}
+          />
+        ) : null}
+      </div>
       <NetFlowChartLegend 
         hasData={hasData && combinedData.length > 0} 
         whaleMode={whaleMode}
