@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { InfoIcon } from 'lucide-react';
@@ -279,7 +278,7 @@ const VolumeRatioChart: React.FC<VolumeRatioChartProps> = ({ data, whaleMode = f
         
         <div>
           <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-            {ratios > MAX_RATIO_DISPLAY ? `Some ratios exceed ${MAX_RATIO_DISPLAY}x (shown with ↑)` : ''}
+            {formattedData && formattedData.some(item => item.exceededCap) ? `Some ratios exceed ${MAX_RATIO_DISPLAY}x (shown with ↑)` : ''}
           </span>
         </div>
       </div>
