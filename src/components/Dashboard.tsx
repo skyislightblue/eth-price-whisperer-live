@@ -4,7 +4,8 @@ import PriceCard from "./PriceCard";
 import PriceChart from "./PriceChart";
 import VolumeChart from "./VolumeChart";
 import VolumeRatioChart from "./VolumeRatioChart";
-import { fetchCurrentPrice, fetchHistoricalData } from "@/services/priceService";
+import NetFlowPriceChart from "./NetFlowPriceChart";
+import { fetchCurrentPrice, fetchHistoricalData, HistoricalPrice } from "@/services/priceService";
 import { fetchUniswapVolume, VolumeData, WHALE_THRESHOLD } from "@/services/uniswapService";
 import { Button } from "@/components/ui/button";
 import { InfoIcon } from "lucide-react";
@@ -17,11 +18,6 @@ interface PriceData {
   high24h: number;
   low24h: number;
   priceChangePercentage24h: number;
-}
-
-interface HistoricalPrice {
-  timestamp: number;
-  price: number;
 }
 
 const Dashboard = () => {
@@ -179,6 +175,38 @@ const Dashboard = () => {
               ) : (
                 <div className="h-full flex items-center justify-center text-gray-500">
                   Loading chart data...
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* New Net Inflow vs Price Chart Section */}
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium text-gray-800">
+                Net ETH Flow vs Price
+                {whaleMode && <span className="ml-2 bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded">Whale Mode Active</span>}
+              </h3>
+            </div>
+            
+            <div className="h-80">
+              {volumeError ? (
+                <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4">
+                  {volumeError}
+                </div>
+              ) : volumeLoading || historicalData.length === 0 ? (
+                <div className="h-full flex items-center justify-center text-gray-500">
+                  Loading net flow and price data...
+                </div>
+              ) : volumeData.length > 0 ? (
+                <NetFlowPriceChart 
+                  volumeData={volumeData} 
+                  priceData={historicalData}
+                  whaleMode={whaleMode}
+                />
+              ) : (
+                <div className="h-full flex items-center justify-center text-gray-500">
+                  {whaleMode ? "No whale trades found in this period" : "No volume data available"}
                 </div>
               )}
             </div>

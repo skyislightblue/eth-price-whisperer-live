@@ -18,3 +18,21 @@ export interface FormattedDataItem {
   exceededCap: boolean;
   swapCount: number;
 }
+
+export interface NetFlowDataPoint {
+  timestamp: number;
+  netFlow: number;
+}
+
+export interface PriceDataPoint {
+  timestamp: number;
+  price: number;
+}
+
+export interface CombinedDataPoint {
+  timestamp: Date;
+  netFlow: number;
+  price: number;
+  divergence?: boolean;
+  divergenceMessage?: string;
+}
