@@ -39,7 +39,7 @@ const VolumeChart: React.FC<VolumeChartProps> = ({ data }) => {
         
         const layout = {
           height: 300,
-          margin: { t: 10, r: 10, l: 70, b: 60 },
+          margin: { t: 10, r: 30, l: 100, b: 60 }, // Increased left margin for y-axis labels
           xaxis: {
             title: {
               text: 'Time (Hourly)',
@@ -50,10 +50,14 @@ const VolumeChart: React.FC<VolumeChartProps> = ({ data }) => {
           yaxis: {
             title: {
               text: 'Volume (USD)',
-              standoff: 10,
+              standoff: 30, // Increased standoff
             },
             tickprefix: '$',
-            tickformat: ',.2f',
+            tickformat: ',.0f', // Changed to simpler format without decimals
+            tickfont: {
+              size: 10, // Smaller font size
+            },
+            nticks: 8, // Limit number of ticks to avoid overcrowding
           },
           barmode: 'group',
           bargap: 0.15,

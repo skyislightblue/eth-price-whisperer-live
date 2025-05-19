@@ -5,6 +5,8 @@ import PriceChart from "./PriceChart";
 import VolumeChart from "./VolumeChart";
 import { fetchCurrentPrice, fetchHistoricalData } from "@/services/priceService";
 import { fetchUniswapVolume, VolumeData } from "@/services/uniswapService";
+import { Button } from "@/components/ui/button";
+import { InfoIcon } from "lucide-react";
 
 // Define types for our price data
 interface PriceData {
@@ -28,11 +30,13 @@ const Dashboard = () => {
   const [error, setError] = useState<string | null>(null);
   const [volumeError, setVolumeError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
   // Function to fetch all price data
   const fetchAllData = async () => {
     try {
       setLoading(true);
+      setIsRefreshing(true);
       
       // Fetch current price data
       const currentData = await fetchCurrentPrice();
@@ -49,6 +53,7 @@ const Dashboard = () => {
       setError("Failed to fetch price data. Please try again later.");
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -70,19 +75,16 @@ const Dashboard = () => {
     }
   };
 
-  // Fetch data on initial load
+  // Handle refresh button click
+  const handleRefresh = () => {
+    fetchAllData();
+    fetchVolumeData();
+  };
+
+  // Fetch data on initial load only - no more automatic refresh
   useEffect(() => {
     fetchAllData();
     fetchVolumeData();
-    
-    // Set up a timer to refresh data every minute
-    const intervalId = setInterval(() => {
-      fetchAllData();
-      fetchVolumeData();
-    }, 60000);
-    
-    // Clean up interval on unmount
-    return () => clearInterval(intervalId);
   }, []);
 
   return (
@@ -90,16 +92,18 @@ const Dashboard = () => {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-800">Ethereum Price Dashboard</h2>
         <div className="flex items-center space-x-2">
-          <button 
-            onClick={() => {
-              fetchAllData();
-              fetchVolumeData();
-            }} 
-            disabled={loading}
-            className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50"
+          <div className="flex items-center text-sm text-gray-500 mr-2">
+            <InfoIcon className="h-4 w-4 mr-1" />
+            <span>CoinGecko API limits: 10-30 calls/minute</span>
+          </div>
+          <Button 
+            onClick={handleRefresh} 
+            disabled={isRefreshing || loading}
+            variant="outline"
+            className="px-3 py-1"
           >
-            Refresh
-          </button>
+            {isRefreshing ? 'Refreshing...' : 'Refresh'}
+          </Button>
           {lastUpdated && (
             <span className="text-sm text-gray-500">
               Last updated: {lastUpdated.toLocaleTimeString()}
@@ -154,7 +158,7 @@ const Dashboard = () => {
             </div>
           </div>
           
-          {/* New Volume Chart Section */}
+          {/* Volume Chart Section */}
           <div className="bg-white rounded-lg shadow p-4">
             <h3 className="text-lg font-medium text-gray-800 mb-4">24 Hour ETH/USDC Trading Volume</h3>
             <div className="h-80">
