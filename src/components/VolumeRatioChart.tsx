@@ -1,5 +1,5 @@
+
 import React, { useEffect, useRef, useState } from 'react';
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { InfoIcon } from 'lucide-react';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 
@@ -22,6 +22,7 @@ interface FormattedDataItem {
   sellVolume: number;
   totalVolume: number;
   exceededCap: boolean;
+  swapCount: number;
 }
 
 const VolumeRatioChart: React.FC<VolumeRatioChartProps> = ({ data, whaleMode = false }) => {
@@ -35,6 +36,9 @@ const VolumeRatioChart: React.FC<VolumeRatioChartProps> = ({ data, whaleMode = f
 
   useEffect(() => {
     if (!chartRef.current || data.length === 0) return;
+    
+    console.log(`VolumeRatioChart: Rendering with ${data.length} data points, whaleMode=${whaleMode}`);
+    console.log(`First data point swapCount: ${data[0]?.swapCount || 0}`);
 
     const loadPlotly = async () => {
       try {
@@ -48,6 +52,7 @@ const VolumeRatioChart: React.FC<VolumeRatioChartProps> = ({ data, whaleMode = f
           const sellVolume = item.sellVolume || 0.001; // Prevent division by zero
           const ratio = buyVolume / sellVolume;
           const totalVolume = buyVolume + sellVolume;
+          const swapCount = item.swapCount || 0;
           
           // Cap the displayed ratio for the chart
           const displayRatio = Math.min(ratio, MAX_RATIO_DISPLAY);
@@ -59,7 +64,8 @@ const VolumeRatioChart: React.FC<VolumeRatioChartProps> = ({ data, whaleMode = f
             buyVolume,
             sellVolume,
             totalVolume,
-            exceededCap: ratio > MAX_RATIO_DISPLAY
+            exceededCap: ratio > MAX_RATIO_DISPLAY,
+            swapCount
           };
         });
         
@@ -212,13 +218,16 @@ const VolumeRatioChart: React.FC<VolumeRatioChartProps> = ({ data, whaleMode = f
         
         // Generate bar chart for trade count
         if (barChartRef.current) {
-          const swapCounts = data.map(item => item.swapCount || 0);
+          // Extract swap counts from actual data
+          const swapCounts = newFormattedData.map(item => item.swapCount);
+          
+          console.log(`Trade counts for chart: ${JSON.stringify(swapCounts)}`);
           
           const barLayout = {
             height: 150,
             margin: { t: 10, r: 30, l: 60, b: 60 },
             title: {
-              text: 'Number of Trades Per Hour',
+              text: whaleMode ? 'Number of Whale Trades Per Hour' : 'Number of Trades Per Hour',
               font: {
                 size: 14,
               }

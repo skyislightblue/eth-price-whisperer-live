@@ -7,6 +7,7 @@ interface VolumeChartProps {
     volumeUSD: number;
     buyVolume?: number;
     sellVolume?: number;
+    swapCount?: number;
   }[];
   whaleMode?: boolean;
 }
@@ -16,6 +17,9 @@ const VolumeChart: React.FC<VolumeChartProps> = ({ data, whaleMode = false }) =>
 
   useEffect(() => {
     if (!chartRef.current || data.length === 0) return;
+    
+    console.log(`VolumeChart: Rendering with ${data.length} data points, whaleMode=${whaleMode}`);
+    console.log(`Sample data point: ${JSON.stringify(data[0])}`);
 
     const loadPlotly = async () => {
       try {

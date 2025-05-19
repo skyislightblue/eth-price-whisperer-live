@@ -17,6 +17,17 @@ export interface VolumeData {
 // Define the whale threshold in USD
 export const WHALE_THRESHOLD = 500000;
 
+// Cache for volume data to avoid redundant API calls
+let volumeDataCache: {
+  regular: VolumeData[] | null;
+  whale: VolumeData[] | null;
+  timestamp: number;
+} = {
+  regular: null,
+  whale: null,
+  timestamp: 0
+};
+
 // Function to generate mock volume data with buy/sell distinction
 const generateMockVolumeData = (whaleMode = false): VolumeData[] => {
   const data: VolumeData[] = [];
@@ -65,11 +76,26 @@ const generateMockVolumeData = (whaleMode = false): VolumeData[] => {
     }
   }
   
+  console.log(`Generated ${data.length} mock data points with whaleMode=${whaleMode}`);
+  console.log(`First data point swapCount: ${data[0]?.swapCount || 0}`);
   return data;
 };
 
 // Function to fetch 24-hour trading volume for ETH/USDC pair with buy/sell distinction
-export const fetchUniswapVolume = async (whaleMode = false): Promise<VolumeData[]> => {
+export const fetchUniswapVolume = async (whaleMode = false, forceRefresh = false): Promise<VolumeData[]> => {
+  // Check cache first if not forcing refresh
+  const cacheKey = whaleMode ? 'whale' : 'regular';
+  const now = Date.now();
+  
+  if (!forceRefresh && 
+      volumeDataCache[cacheKey] !== null && 
+      (now - volumeDataCache.timestamp) < 300000) { // 5 minute cache
+    console.log(`Using cached ${cacheKey} volume data from ${new Date(volumeDataCache.timestamp).toLocaleTimeString()}`);
+    return volumeDataCache[cacheKey] || [];
+  }
+  
+  console.log(`Fetching fresh ${cacheKey} volume data, whale threshold: ${WHALE_THRESHOLD}`);
+  
   try {
     // Get UTC timestamp for 24 hours ago
     const oneDayAgo = Math.floor((Date.now() - 24 * 60 * 60 * 1000) / 1000);
@@ -121,6 +147,11 @@ export const fetchUniswapVolume = async (whaleMode = false): Promise<VolumeData[
     const swaps = data.data.swaps;
     const hourlyData: Record<number, { buyVolume: number, sellVolume: number, swapCount: number }> = {};
     
+    console.log(`Processing ${swaps.length} swaps with whale threshold: ${WHALE_THRESHOLD}, whale mode: ${whaleMode}`);
+    
+    let totalSwaps = 0;
+    let includedSwaps = 0;
+    
     // Process each swap and categorize as buy or sell
     swaps.forEach((swap: any) => {
       const timestamp = parseInt(swap.timestamp) * 1000; // Convert to milliseconds
@@ -132,10 +163,14 @@ export const fetchUniswapVolume = async (whaleMode = false): Promise<VolumeData[
       const amount0Out = parseFloat(swap.amount0Out || '0');
       const amountUSD = parseFloat(swap.amountUSD || '0');
       
+      totalSwaps++;
+      
       // Skip if whale mode is active and this isn't a whale trade
       if (whaleMode && amountUSD <= WHALE_THRESHOLD) {
         return;
       }
+      
+      includedSwaps++;
       
       if (!hourlyData[hourTimestamp]) {
         hourlyData[hourTimestamp] = { buyVolume: 0, sellVolume: 0, swapCount: 0 };
@@ -155,6 +190,8 @@ export const fetchUniswapVolume = async (whaleMode = false): Promise<VolumeData[
       }
     });
     
+    console.log(`Processed ${totalSwaps} total swaps, included ${includedSwaps} swaps after whale filtering`);
+    
     // Convert to array format for the chart
     const result: VolumeData[] = Object.entries(hourlyData)
       .filter(([_, volumes]) => volumes.buyVolume > 0 || volumes.sellVolume > 0) // Filter out empty hours (important for whale mode)
@@ -169,7 +206,14 @@ export const fetchUniswapVolume = async (whaleMode = false): Promise<VolumeData[
     // Sort by timestamp
     result.sort((a, b) => a.timestamp - b.timestamp);
     
+    console.log(`Generated ${result.length} hourly data points after filtering`);
+    if (result.length > 0) {
+      console.log(`First hourly data point: timestamp=${new Date(result[0].timestamp).toLocaleTimeString()}, swapCount=${result[0].swapCount}`);
+    }
+    
     // In whale mode, we don't fill empty hours because it makes more sense to see just the actual whale trades
+    let finalResult: VolumeData[];
+    
     if (!whaleMode) {
       // Fill in any missing hours with zero volume
       const completeHourlyData: VolumeData[] = [];
@@ -193,15 +237,28 @@ export const fetchUniswapVolume = async (whaleMode = false): Promise<VolumeData[
         }
       }
       
-      return completeHourlyData;
+      finalResult = completeHourlyData;
+    } else {
+      finalResult = result;
     }
     
-    return result;
+    // Update cache
+    volumeDataCache[cacheKey] = finalResult;
+    volumeDataCache.timestamp = now;
+    
+    console.log(`Returning ${finalResult.length} final data points for ${cacheKey} mode`);
+    return finalResult;
   } catch (error) {
     console.error("Error fetching Uniswap volume data:", error);
     
     // Return mock data instead of throwing an error
     console.log("Using mock volume data instead");
-    return generateMockVolumeData(whaleMode);
+    const mockData = generateMockVolumeData(whaleMode);
+    
+    // Update cache with mock data
+    volumeDataCache[cacheKey] = mockData;
+    volumeDataCache.timestamp = now;
+    
+    return mockData;
   }
 };

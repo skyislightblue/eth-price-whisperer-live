@@ -66,10 +66,15 @@ const Dashboard = () => {
     try {
       setVolumeLoading(true);
       
-      // Fetch trading volume data with whale filter
-      const volumeData = await fetchUniswapVolume(whaleMode);
-      setVolumeData(volumeData);
+      console.log(`Fetching volume data with whale mode: ${whaleMode}, threshold: ${WHALE_THRESHOLD}`);
       
+      // Fetch fresh data from API and force a refresh regardless of cache
+      const volumeData = await fetchUniswapVolume(whaleMode, true);
+      
+      console.log(`Received ${volumeData.length} data points, first point swapCount: ${volumeData[0]?.swapCount || 0}`);
+      console.log(`Sample volume data:`, volumeData.slice(0, 2));
+      
+      setVolumeData(volumeData);
       setVolumeError(null);
     } catch (err) {
       console.error("Error fetching volume data:", err);
@@ -98,7 +103,7 @@ const Dashboard = () => {
         "Showing all trading activity"
     });
     
-    // Refetch data with whale filter
+    // Always fetch fresh data when toggling whale mode to ensure proper filtering
     fetchVolumeData(newWhaleMode);
   };
 
