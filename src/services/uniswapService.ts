@@ -38,8 +38,9 @@ const generateMockVolumeData = (whaleMode = false): VolumeData[] => {
   for (let i = 23; i >= 0; i--) {
     const timestamp = now - (i * hourInMs);
     
-    // Generate a number of swaps per hour (3-15)
-    const swapCount = Math.floor(3 + Math.random() * 12);
+    // Generate a more realistic number of swaps per hour (50-150 for normal mode)
+    // Uniswap V3 ETH/USDC pool has much higher volume than previously shown
+    const swapCount = Math.floor(50 + Math.random() * 100);
     let hourlyBuyVolume = 0;
     let hourlySellVolume = 0;
     let includedSwaps = 0;

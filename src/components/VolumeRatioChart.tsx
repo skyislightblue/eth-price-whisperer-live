@@ -37,7 +37,7 @@ const VolumeRatioChart: React.FC<VolumeRatioChartProps> = ({ data, whaleMode = f
 
   return (
     <TooltipProvider>
-      <div className="space-y-2">
+      <div className="space-y-4"> {/* Increased spacing from y-2 to y-4 */}
         {formattedData.length > 0 && (
           <>
             <RatioLineChart 

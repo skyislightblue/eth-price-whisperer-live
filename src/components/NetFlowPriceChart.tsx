@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { VolumeData } from '@/services/uniswapService';
 import { HistoricalPrice } from '@/services/priceService';
@@ -239,33 +238,40 @@ const NetFlowPriceChart: React.FC<NetFlowPriceChartProps> = ({
             'ETH Net Inflow vs Price (Whale Trades Only)' : 
             'ETH Net Inflow vs Price (24h)',
           height: 350,
-          margin: { t: 40, r: 70, l: 70, b: 40 },
+          margin: { t: 40, r: 70, l: 70, b: 80 }, // Increased bottom margin from 40 to 80
           xaxis: {
-            title: 'Time (UTC)',
+            title: {
+              text: 'Time (UTC)',
+              standoff: 30, // Increased standoff to create more space
+            },
             showgrid: false,
           },
           yaxis: {
-            title: 'ETH Net Flow (scaled)',
-            titlefont: { color: '#9b87f5' },
-            tickfont: { color: '#9b87f5' },
-            side: 'left',
-            zeroline: true,
-            zerolinecolor: '#ccc',
-            gridcolor: 'rgba(155, 135, 245, 0.1)',
-            range: [-0.1, 1.1], // Add some padding to normalized range
+            title: {
+              text: 'ETH Net Flow (scaled)',
+              titlefont: { color: '#9b87f5' },
+              tickfont: { color: '#9b87f5' },
+              side: 'left',
+              zeroline: true,
+              zerolinecolor: '#ccc',
+              gridcolor: 'rgba(155, 135, 245, 0.1)',
+              range: [-0.1, 1.1], // Add some padding to normalized range
+            },
           },
           yaxis2: {
-            title: 'ETH Price (USD)',
-            titlefont: { color: '#F97316' },
-            tickfont: { color: '#F97316' },
-            side: 'right',
-            overlaying: 'y',
-            showgrid: false,
+            title: {
+              text: 'ETH Price (USD)',
+              titlefont: { color: '#F97316' },
+              tickfont: { color: '#F97316' },
+              side: 'right',
+              overlaying: 'y',
+              showgrid: false,
+            },
           },
           showlegend: true,
           legend: {
             orientation: 'h',
-            y: -0.2
+            y: -0.15 // Move legend up from -0.2 to -0.15 to keep it within frame
           },
           plot_bgcolor: 'rgba(0,0,0,0)',
           paper_bgcolor: 'rgba(0,0,0,0)',
@@ -330,29 +336,7 @@ const NetFlowPriceChart: React.FC<NetFlowPriceChartProps> = ({
       ) : (
         <div className="mt-2 text-sm text-gray-600">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex items-center cursor-help">
-                      <InfoIcon className="h-4 w-4 text-gray-500 mr-1" />
-                      <span>Divergence signals detected: {divergenceCount.total}</span>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent className="w-64">
-                    <p className="mb-2">
-                      <span className="inline-block w-3 h-3 rounded-full bg-red-500 mr-2"></span>
-                      <strong>{divergenceCount.inflowDown}</strong> net inflow up but price down signals
-                    </p>
-                    <p>
-                      <span className="inline-block w-3 h-3 rounded-full bg-green-600 mr-2"></span>
-                      <strong>{divergenceCount.outflowUp}</strong> net outflow down but price up signals
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-            <div className="flex items-center text-xs space-x-4">
+            <div className="flex items-center space-x-4">
               <div className="flex items-center">
                 <span className="inline-block w-3 h-3 rounded-full bg-red-500 mr-1"></span>
                 <span>Buying pressure but price falling</span>
