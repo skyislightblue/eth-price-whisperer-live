@@ -62,18 +62,19 @@ const VolumeChart: React.FC<VolumeChartProps> = ({ data, whaleMode = false }) =>
           'Uniswap ETH Trading Volume (From Uniswap V3)';
         
         const layout = {
-          height: 300,
-          margin: { t: 30, r: 30, l: 100, b: 60 },
+          height: 340, // Increased height from 300 to 340
+          margin: { t: 50, r: 50, l: 100, b: 80 }, // Increased margins all around
           title: {
             text: title,
             font: {
               size: 14,
-            }
+            },
+            y: 0.97, // Move title slightly down from top
           },
           xaxis: {
             title: {
               text: 'Time (Hourly)',
-              standoff: 10,
+              standoff: 30, // Increased standoff for title
             },
             tickangle: -45
           },
@@ -101,7 +102,7 @@ const VolumeChart: React.FC<VolumeChartProps> = ({ data, whaleMode = false }) =>
             orientation: 'h', 
             xanchor: 'center',
             x: 0.5,
-            y: 1.05
+            y: 1.15 // Moved legend further up for more space
           }
         };
         
@@ -124,7 +125,7 @@ const VolumeChart: React.FC<VolumeChartProps> = ({ data, whaleMode = false }) =>
     loadPlotly();
   }, [data, whaleMode]);
 
-  return <div ref={chartRef} className="w-full h-full" />;
+  return <div ref={chartRef} className="w-full h-80" />; // Increased height from h-full to h-80
 };
 
 export default VolumeChart;

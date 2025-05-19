@@ -20,7 +20,7 @@ const NetFlowChartLegend: React.FC<NetFlowChartLegendProps> = ({
 
   return (
     <div className="mt-4 text-sm text-gray-600">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-end"> {/* Changed to justify-end to position at the right */}
         <div className="flex items-center space-x-4">
           <div className="flex items-center">
             <span className="inline-block w-3 h-3 rounded-full bg-red-500 mr-1"></span>

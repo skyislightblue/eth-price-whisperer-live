@@ -27,12 +27,26 @@ const NetFlowPlotlyChart: React.FC<NetFlowPlotlyChartProps> = ({
         const normalizedNetFlows = combinedData.map(d => d.normalizedNetFlow || 0);
         const prices = combinedData.map(d => d.price);
         
-        // Create traces for Plotly
+        // Create traces for Plotly - SWAPPED POSITIONS
+        const priceTrace = {
+          x: timestamps,
+          y: prices,
+          name: 'ETH Price',
+          yaxis: 'y',
+          type: 'scatter',
+          mode: 'lines',
+          line: {
+            color: '#F97316', // Bright orange color
+            width: 2,
+          },
+          hovertemplate: 'Price: $%{y:.2f}<br>Time: %{x}<extra></extra>'
+        };
+        
         const netFlowTrace = {
           x: timestamps,
           y: normalizedNetFlows, // Use normalized values for better visualization
-          name: 'Net Inflow (Buy-Sell)',
-          yaxis: 'y',
+          name: 'Net Inflow (Buy/Sell)',
+          yaxis: 'y2',
           type: 'scatter',
           mode: 'lines',
           line: {
@@ -43,26 +57,12 @@ const NetFlowPlotlyChart: React.FC<NetFlowPlotlyChartProps> = ({
           text: netFlows, // Show the actual values in tooltips
         };
         
-        const priceTrace = {
-          x: timestamps,
-          y: prices,
-          name: 'ETH Price',
-          yaxis: 'y2',
-          type: 'scatter',
-          mode: 'lines',
-          line: {
-            color: '#F97316', // Bright orange color
-            width: 2,
-          },
-          hovertemplate: 'Price: $%{y:.2f}<br>Time: %{x}<extra></extra>'
-        };
-        
         // Create annotations for divergences
         const annotations = combinedData
           .filter(point => point.divergence)
           .map((point) => ({
             x: point.timestamp,
-            y: point.normalizedNetFlow,
+            y: point.price, // Attach to price line since it's our main line now
             xref: 'x',
             yref: 'y',
             text: point.divergenceType === DivergenceType.INFLOW_PRICE_DOWN ? '↓' : '↑',
@@ -87,45 +87,45 @@ const NetFlowPlotlyChart: React.FC<NetFlowPlotlyChartProps> = ({
         // Define layout with proper typing for shapes
         const layout: Partial<PlotlyTypes.Layout> = {
           title: whaleMode ? 
-            'ETH Net Inflow vs Price (Whale Trades Only)' : 
-            'ETH Net Inflow vs Price (24h)',
+            'ETH Price vs Net Inflow (Whale Trades Only)' : 
+            'ETH Price vs Net Inflow (24h)',
           height: 350,
-          margin: { t: 40, r: 70, l: 70, b: 100 }, // Increased bottom margin to 100
+          margin: { t: 50, r: 70, l: 70, b: 110 }, // Increased top and bottom margins
           xaxis: {
             title: {
               text: 'Time (UTC)',
-              standoff: 40, // Increased standoff to create more space
+              standoff: 50, // Increased standoff for more space
             },
             showgrid: false,
           },
           yaxis: {
             title: {
-              text: 'ETH Net Flow (scaled)',
-              titlefont: { color: '#9b87f5' },
-              tickfont: { color: '#9b87f5' },
+              text: 'ETH Price (USD)',
+              titlefont: { color: '#F97316' },
+              tickfont: { color: '#F97316' },
               side: 'left',
               zeroline: true,
               zerolinecolor: '#ccc',
-              gridcolor: 'rgba(155, 135, 245, 0.1)',
-              range: [-0.1, 1.1], // Add some padding to normalized range
+              gridcolor: 'rgba(245, 158, 11, 0.1)',
             },
           },
           yaxis2: {
             title: {
-              text: 'ETH Price (USD)',
-              titlefont: { color: '#F97316' },
-              tickfont: { color: '#F97316' },
+              text: 'Net Inflow Ratio (Buy/Sell)',
+              titlefont: { color: '#9b87f5' },
+              tickfont: { color: '#9b87f5' },
               side: 'right',
               overlaying: 'y',
               showgrid: false,
+              range: [-0.1, 1.1], // Add some padding to normalized range
             },
           },
           showlegend: true,
           legend: {
             orientation: 'h',
-            y: -0.20, // Moved legend down to keep it within the white box
+            y: -0.25, // Moved legend down further
             yanchor: 'top',
-            x: 0.5,
+            x: 0.8, // Moved to right side (position 0.8)
             xanchor: 'center'
           },
           plot_bgcolor: 'rgba(0,0,0,0)',
@@ -167,7 +167,7 @@ const NetFlowPlotlyChart: React.FC<NetFlowPlotlyChartProps> = ({
           displayModeBar: false,
         };
         
-        Plotly.newPlot(chartRef.current, [netFlowTrace, priceTrace], layout, config);
+        Plotly.newPlot(chartRef.current, [priceTrace, netFlowTrace], layout, config);
         
         // Cleanup
         return () => {

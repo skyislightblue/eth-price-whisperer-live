@@ -26,6 +26,13 @@ const RatioLineChart: React.FC<RatioLineChartProps> = ({
         const ratios = formattedData.map(item => item.displayRatio);
         const exceededCap = formattedData.map(item => item.exceededCap);
         
+        // Find the maximum ratio to determine appropriate scale
+        let maxRatio = Math.max(...formattedData.map(item => item.ratio));
+        // If max ratio is less than 2, cap at 2 for better visualization
+        const dynamicMaxDisplay = maxRatio < 2 ? 2 : Math.min(Math.ceil(maxRatio * 1.2), maxRatioDisplay);
+        
+        console.log(`Dynamic ratio range: max actual ratio = ${maxRatio}, display cap = ${dynamicMaxDisplay}`);
+        
         const ratioTrace = {
           x: timestamps,
           y: ratios,
@@ -100,9 +107,20 @@ const RatioLineChart: React.FC<RatioLineChartProps> = ({
           showlegend: false
         };
         
+        // Calculate appropriate tick values based on dynamic max
+        const tickValues = [0, 0.5, 1, 2];
+        if (dynamicMaxDisplay > 2) {
+          // Add intermediate ticks for larger ranges
+          if (dynamicMaxDisplay <= 5) tickValues.push(dynamicMaxDisplay);
+          else {
+            tickValues.push(5);
+            tickValues.push(dynamicMaxDisplay);
+          }
+        }
+        
         const layout = {
           height: 300,
-          margin: { t: 30, r: 30, l: 60, b: 60 },
+          margin: { t: 40, r: 30, l: 60, b: 60 },
           title: {
             text: title,
             font: {
@@ -112,7 +130,7 @@ const RatioLineChart: React.FC<RatioLineChartProps> = ({
           xaxis: {
             title: {
               text: 'Time (Hourly)',
-              standoff: 10,
+              standoff: 20,
             },
             tickangle: -45
           },
@@ -124,8 +142,8 @@ const RatioLineChart: React.FC<RatioLineChartProps> = ({
             tickformat: '.2f',
             hoverformat: '.2f',
             rangemode: 'tozero',
-            range: [0, maxRatioDisplay + 1], // Set Y-axis cap
-            tickvals: [0, 0.5, 1, 2, 5, maxRatioDisplay],
+            range: [0, dynamicMaxDisplay + 0.5], // Dynamic Y-axis cap with some padding
+            tickvals: tickValues,
           },
           annotations: formattedData.map((item, i) => {
             if (item.exceededCap) {
@@ -151,7 +169,7 @@ const RatioLineChart: React.FC<RatioLineChartProps> = ({
             orientation: 'h',
             xanchor: 'center',
             x: 0.5,
-            y: 1.05
+            y: 1.1 // Increased space above chart
           }
         };
         

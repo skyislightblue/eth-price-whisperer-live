@@ -24,18 +24,19 @@ const TradesBarChart: React.FC<TradesBarChartProps> = ({ formattedData, title })
         console.log(`Trade counts for chart: ${JSON.stringify(swapCounts)}`);
         
         const barLayout = {
-          height: 300, // Increased from 250 to give more space for title
-          margin: { t: 40, r: 30, l: 60, b: 100 }, // Increased top margin from 10 to 40 and bottom from 80 to 100
+          height: 320, // Increased from 300 to give more space
+          margin: { t: 60, r: 40, l: 60, b: 100 }, // Increased top margin to ensure title is visible
           title: {
             text: title,
             font: {
               size: 14,
-            }
+            },
+            y: 0.95 // Move title down a bit from the top
           },
           xaxis: {
             title: {
               text: 'Time (Hourly)',
-              standoff: 40, // Increased standoff from 30 to 40
+              standoff: 50, // Increased standoff from 40 to 50
             },
             tickangle: -45,
             // Match the x-axis of the ratio chart
@@ -83,7 +84,7 @@ const TradesBarChart: React.FC<TradesBarChartProps> = ({ formattedData, title })
     loadPlotly();
   }, [formattedData, title]);
 
-  return <div ref={chartRef} className="w-full h-72" />; // Increased height from h-64 to h-72
+  return <div ref={chartRef} className="w-full h-80" />; // Increased height from h-72 to h-80
 };
 
 export default TradesBarChart;

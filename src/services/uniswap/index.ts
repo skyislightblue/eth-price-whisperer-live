@@ -41,13 +41,14 @@ export const fetchUniswapVolume = async (whaleMode = false, forceRefresh = false
       }
     }`;
 
-    // Send request to The Graph API
+    // Send request to The Graph API using a CORS proxy
     const response = await fetch(
-      "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3",
+      "https://cors-anywhere.herokuapp.com/https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Origin": window.location.origin,
         },
         body: JSON.stringify({ query }),
       }
