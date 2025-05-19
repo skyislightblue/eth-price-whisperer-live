@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import PriceCard from "./PriceCard";
 import PriceChart from "./PriceChart";
 import VolumeChart from "./VolumeChart";
+import VolumeRatioChart from "./VolumeRatioChart";
 import { fetchCurrentPrice, fetchHistoricalData } from "@/services/priceService";
 import { fetchUniswapVolume, VolumeData } from "@/services/uniswapService";
 import { Button } from "@/components/ui/button";
@@ -158,7 +159,7 @@ const Dashboard = () => {
             </div>
           </div>
           
-          {/* Volume Chart Section - Updated with Buy/Sell distinction */}
+          {/* Volume Chart Section */}
           <div className="bg-white rounded-lg shadow p-4">
             <h3 className="text-lg font-medium text-gray-800 mb-4">24 Hour ETH/USDC Trading Volume</h3>
             <div className="h-80">
@@ -175,6 +176,28 @@ const Dashboard = () => {
               ) : (
                 <div className="h-full flex items-center justify-center text-gray-500">
                   No volume data available
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* New Volume Ratio Chart Section */}
+          <div className="bg-white rounded-lg shadow p-4">
+            <h3 className="text-lg font-medium text-gray-800 mb-4">ETH/USDC Buy/Sell Volume Ratio</h3>
+            <div className="h-80">
+              {volumeError ? (
+                <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4">
+                  {volumeError}
+                </div>
+              ) : volumeLoading ? (
+                <div className="h-full flex items-center justify-center text-gray-500">
+                  Loading ratio data...
+                </div>
+              ) : volumeData.length > 0 ? (
+                <VolumeRatioChart data={volumeData} />
+              ) : (
+                <div className="h-full flex items-center justify-center text-gray-500">
+                  No ratio data available
                 </div>
               )}
             </div>
