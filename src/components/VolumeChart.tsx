@@ -26,8 +26,9 @@ const VolumeChart: React.FC<VolumeChartProps> = ({ data }) => {
           return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         });
         
+        // For symmetrical chart, buy volumes are positive and sell volumes are negative
         const buyVolumes = data.map(item => item.buyVolume || 0);
-        const sellVolumes = data.map(item => item.sellVolume || 0);
+        const sellVolumes = data.map(item => -(item.sellVolume || 0)); // Negate sell volumes
         
         const buyTrace = {
           x: timestamps,
@@ -53,7 +54,7 @@ const VolumeChart: React.FC<VolumeChartProps> = ({ data }) => {
         
         const layout = {
           height: 300,
-          margin: { t: 30, r: 30, l: 100, b: 60 }, // Increased left margin for y-axis labels and top margin for title
+          margin: { t: 30, r: 30, l: 100, b: 60 },
           title: {
             text: 'Uniswap ETH Trading Volume',
             font: {
@@ -70,16 +71,19 @@ const VolumeChart: React.FC<VolumeChartProps> = ({ data }) => {
           yaxis: {
             title: {
               text: 'Volume (USD)',
-              standoff: 30, // Increased standoff
+              standoff: 30,
             },
             tickprefix: '$',
-            tickformat: ',.0f', // Changed to simpler format without decimals
+            tickformat: ',.0f',
             tickfont: {
-              size: 10, // Smaller font size
+              size: 10,
             },
-            nticks: 8, // Limit number of ticks to avoid overcrowding
+            nticks: 8,
+            zeroline: true,
+            zerolinecolor: '#888',
+            zerolinewidth: 1,
           },
-          barmode: 'stack', // Stack the buy and sell volumes
+          barmode: 'relative', // Use relative mode for symmetrical bars
           bargap: 0.15,
           plot_bgcolor: 'rgba(0,0,0,0)',
           paper_bgcolor: 'rgba(0,0,0,0)',
