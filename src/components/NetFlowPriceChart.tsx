@@ -1,8 +1,10 @@
 
-import React, { useEffect, useRef } from 'react';
-import { renderToStaticMarkup } from 'react-dom/server';
+import React, { useEffect, useRef, useState } from 'react';
 import { VolumeData } from '@/services/uniswapService';
 import { HistoricalPrice } from '@/services/priceService';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { InfoIcon } from "lucide-react";
+import { CombinedDataPoint, DivergenceType } from './charts/types';
 
 interface NetFlowPriceChartProps {
   volumeData: VolumeData[];
@@ -16,6 +18,11 @@ const NetFlowPriceChart: React.FC<NetFlowPriceChartProps> = ({
   whaleMode = false 
 }) => {
   const chartRef = useRef<HTMLDivElement>(null);
+  const [divergenceCount, setDivergenceCount] = useState<{
+    inflowDown: number;
+    outflowUp: number;
+    total: number;
+  }>({ inflowDown: 0, outflowUp: 0, total: 0 });
 
   // Function to calculate net inflow per hour
   const calculateNetInflow = (data: VolumeData[]) => {
@@ -30,11 +37,24 @@ const NetFlowPriceChart: React.FC<NetFlowPriceChartProps> = ({
     });
   };
 
+  // Function to normalize data using min-max scaling
+  const normalizeData = (values: number[]): number[] => {
+    if (values.length === 0) return [];
+    
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    
+    // Avoid division by zero
+    if (max === min) return values.map(() => 0.5);
+    
+    return values.map(value => (value - min) / (max - min));
+  }
+
   // Function to find similar timestamps between volume and price data
   const findMatchingDataPoints = (netFlowData: { timestamp: number; netInflow: number }[], priceData: HistoricalPrice[]) => {
     // Make sure we have data to work with
     if (netFlowData.length === 0 || priceData.length === 0) {
-      return { timestamps: [], netFlows: [], prices: [] };
+      return { combinedData: [], divergenceCounts: { inflowDown: 0, outflowUp: 0, total: 0 } };
     }
 
     // Sort both datasets by timestamp
@@ -59,10 +79,8 @@ const NetFlowPriceChart: React.FC<NetFlowPriceChartProps> = ({
       item => item.timestamp >= startTime && item.timestamp <= endTime
     );
 
-    // Initialize arrays for chart data
-    const timestamps: Date[] = [];
-    const netFlows: number[] = [];
-    const prices: number[] = [];
+    // Initialize array for combined data
+    const combinedData: CombinedDataPoint[] = [];
 
     // Map each netflow point to nearest price point
     filteredNetFlow.forEach(netFlowPoint => {
@@ -74,29 +92,60 @@ const NetFlowPriceChart: React.FC<NetFlowPriceChartProps> = ({
       
       // Only add if price point is within reasonable time range (e.g., 30 minutes)
       if (Math.abs(closestPricePoint.timestamp - netFlowPoint.timestamp) <= 30 * 60 * 1000) {
-        timestamps.push(new Date(netFlowPoint.timestamp));
-        netFlows.push(netFlowPoint.netInflow);
-        prices.push(closestPricePoint.price);
+        combinedData.push({
+          timestamp: new Date(netFlowPoint.timestamp),
+          netFlow: netFlowPoint.netInflow,
+          price: closestPricePoint.price
+        });
       }
     });
 
+    // Calculate normalized net flows after all points are collected
+    const netFlows = combinedData.map(point => point.netFlow);
+    const normalizedNetFlows = normalizeData(netFlows);
+    
+    // Apply normalized values back to combined data
+    combinedData.forEach((point, index) => {
+      point.normalizedNetFlow = normalizedNetFlows[index];
+    });
+
     // Detect divergences (when net flow and price move in opposite directions)
-    const divergences = [];
-    for (let i = 1; i < timestamps.length; i++) {
-      const netFlowDelta = netFlows[i] - netFlows[i - 1];
-      const priceDelta = prices[i] - prices[i - 1];
+    let inflowDownCount = 0;
+    let outflowUpCount = 0;
+
+    for (let i = 1; i < combinedData.length; i++) {
+      const netFlowDelta = combinedData[i].netFlow - combinedData[i - 1].netFlow;
+      const priceDelta = combinedData[i].price - combinedData[i - 1].price;
+      
       // Check if significant enough movement and in opposite directions
-      if (Math.abs(netFlowDelta) > 100000 && Math.abs(priceDelta) > 5 && 
-          (netFlowDelta > 0 && priceDelta < 0) || (netFlowDelta < 0 && priceDelta > 0)) {
-        divergences.push({
-          index: i,
-          timestamp: timestamps[i],
-          message: `Divergence: Net flow ${netFlowDelta > 0 ? 'up' : 'down'} but price ${priceDelta > 0 ? 'up' : 'down'}`
-        });
+      const isSignificantNetFlow = Math.abs(netFlowDelta) > 100000; // $100K change
+      const isSignificantPrice = Math.abs(priceDelta) > 5; // $5 price change
+      
+      if (isSignificantNetFlow && isSignificantPrice) {
+        if (netFlowDelta > 0 && priceDelta < 0) {
+          // Positive net inflow but price dropping
+          combinedData[i].divergence = true;
+          combinedData[i].divergenceType = DivergenceType.INFLOW_PRICE_DOWN;
+          combinedData[i].divergenceMessage = `Divergence: High buying volume but price dropping`;
+          inflowDownCount++;
+        } else if (netFlowDelta < 0 && priceDelta > 0) {
+          // Negative net flow (outflow) but price rising
+          combinedData[i].divergence = true;
+          combinedData[i].divergenceType = DivergenceType.OUTFLOW_PRICE_UP;
+          combinedData[i].divergenceMessage = `Divergence: High selling volume but price rising`;
+          outflowUpCount++;
+        }
       }
     }
 
-    return { timestamps, netFlows, prices, divergences };
+    return { 
+      combinedData, 
+      divergenceCounts: {
+        inflowDown: inflowDownCount,
+        outflowUp: outflowUpCount,
+        total: inflowDownCount + outflowUpCount
+      }
+    };
   };
 
   useEffect(() => {
@@ -110,29 +159,36 @@ const NetFlowPriceChart: React.FC<NetFlowPriceChartProps> = ({
         const netFlowData = calculateNetInflow(volumeData);
         
         // Find matching data points
-        const { timestamps, netFlows, prices, divergences } = findMatchingDataPoints(netFlowData, priceData);
+        const { combinedData, divergenceCounts } = findMatchingDataPoints(netFlowData, priceData);
         
-        if (timestamps.length === 0) {
+        if (combinedData.length === 0) {
           console.warn("No matching data points found between volume and price data");
           return;
         }
 
-        // Convert netInflows to millions for better readability
-        const netFlowsInMillions = netFlows.map(value => value / 1000000);
+        // Update divergence count state
+        setDivergenceCount(divergenceCounts);
+        
+        // Extract data for plotting
+        const timestamps = combinedData.map(d => d.timestamp);
+        const netFlows = combinedData.map(d => d.netFlow / 1000000); // Convert to millions
+        const normalizedNetFlows = combinedData.map(d => d.normalizedNetFlow || 0);
+        const prices = combinedData.map(d => d.price);
         
         // Create traces for Plotly
         const netFlowTrace = {
           x: timestamps,
-          y: netFlowsInMillions,
+          y: normalizedNetFlows, // Use normalized values for better visualization
           name: 'Net Inflow (Buy-Sell)',
           yaxis: 'y',
           type: 'scatter',
           mode: 'lines',
           line: {
-            color: 'rgb(33, 150, 243)',
+            color: '#9b87f5', // Primary purple color
             width: 2,
           },
-          hovertemplate: 'Net Inflow: $%{y:.2f}M<br>Time: %{x}<extra></extra>'
+          hovertemplate: 'Net Inflow: $%{text:.2f}M<br>Time: %{x}<extra></extra>',
+          text: netFlows, // Show the actual values in tooltips
         };
         
         const priceTrace = {
@@ -143,29 +199,38 @@ const NetFlowPriceChart: React.FC<NetFlowPriceChartProps> = ({
           type: 'scatter',
           mode: 'lines',
           line: {
-            color: 'rgb(255, 152, 0)',
+            color: '#F97316', // Bright orange color
             width: 2,
           },
           hovertemplate: 'Price: $%{y:.2f}<br>Time: %{x}<extra></extra>'
         };
         
         // Create annotations for divergences
-        const annotations = divergences.map(div => ({
-          x: div.timestamp,
-          y: netFlowsInMillions[div.index],
-          xref: 'x',
-          yref: 'y',
-          text: '!',
-          showarrow: true,
-          arrowhead: 4,
-          arrowsize: 1,
-          arrowwidth: 2,
-          arrowcolor: '#e91e63',
-          ax: 0,
-          ay: -40,
-          hovertext: div.message,
-          hoverlabel: { bgcolor: '#e91e63' }
-        }));
+        const annotations = combinedData
+          .filter(point => point.divergence)
+          .map((point, index) => ({
+            x: point.timestamp,
+            y: point.normalizedNetFlow,
+            xref: 'x',
+            yref: 'y',
+            text: point.divergenceType === DivergenceType.INFLOW_PRICE_DOWN ? '↓' : '↑',
+            showarrow: true,
+            arrowhead: 4,
+            arrowsize: 1,
+            arrowwidth: 2,
+            arrowcolor: point.divergenceType === DivergenceType.INFLOW_PRICE_DOWN ? '#ea384c' : '#2e7d32',
+            ax: 0,
+            ay: point.divergenceType === DivergenceType.INFLOW_PRICE_DOWN ? -40 : 40,
+            hovertext: point.divergenceMessage,
+            hoverlabel: { 
+              bgcolor: point.divergenceType === DivergenceType.INFLOW_PRICE_DOWN ? '#ea384c' : '#2e7d32',
+              font: { color: '#ffffff' }
+            },
+            font: {
+              size: 16,
+              color: 'white'
+            }
+          }));
         
         // Define layout
         const layout = {
@@ -175,22 +240,23 @@ const NetFlowPriceChart: React.FC<NetFlowPriceChartProps> = ({
           height: 350,
           margin: { t: 40, r: 70, l: 70, b: 40 },
           xaxis: {
-            title: 'Time',
+            title: 'Time (UTC)',
             showgrid: false,
           },
           yaxis: {
-            title: 'Net Inflow (millions USD)',
-            titlefont: { color: 'rgb(33, 150, 243)' },
-            tickfont: { color: 'rgb(33, 150, 243)' },
+            title: 'ETH Net Flow (scaled)',
+            titlefont: { color: '#9b87f5' },
+            tickfont: { color: '#9b87f5' },
             side: 'left',
             zeroline: true,
             zerolinecolor: '#ccc',
-            gridcolor: 'rgba(33, 150, 243, 0.1)',
+            gridcolor: 'rgba(155, 135, 245, 0.1)',
+            range: [-0.1, 1.1], // Add some padding to normalized range
           },
           yaxis2: {
             title: 'ETH Price (USD)',
-            titlefont: { color: 'rgb(255, 152, 0)' },
-            tickfont: { color: 'rgb(255, 152, 0)' },
+            titlefont: { color: '#F97316' },
+            tickfont: { color: '#F97316' },
             side: 'right',
             overlaying: 'y',
             showgrid: false,
@@ -205,6 +271,32 @@ const NetFlowPriceChart: React.FC<NetFlowPriceChartProps> = ({
           hovermode: 'closest',
           annotations: annotations
         };
+
+        // Add shapes for divergence zones
+        const shapes = combinedData.reduce((acc: any[], point, i, arr) => {
+          if (point.divergence && i > 0) {
+            const startTime = arr[i-1].timestamp;
+            const endTime = point.timestamp;
+            
+            acc.push({
+              type: 'rect',
+              xref: 'x',
+              yref: 'paper',
+              x0: startTime,
+              y0: 0,
+              x1: endTime,
+              y1: 1,
+              fillcolor: point.divergenceType === DivergenceType.INFLOW_PRICE_DOWN ? 
+                'rgba(234, 56, 76, 0.1)' : 'rgba(46, 125, 50, 0.1)',
+              line: {
+                width: 0
+              }
+            });
+          }
+          return acc;
+        }, []);
+        
+        layout.shapes = shapes;
         
         // Configuration
         const config = {
@@ -233,7 +325,44 @@ const NetFlowPriceChart: React.FC<NetFlowPriceChartProps> = ({
         <div className="absolute inset-0 flex items-center justify-center text-gray-500">
           {whaleMode ? "No whale trades found in this period" : "Insufficient data"}
         </div>
-      ) : null}
+      ) : (
+        <div className="mt-2 text-sm text-gray-600">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center cursor-help">
+                      <InfoIcon className="h-4 w-4 text-gray-500 mr-1" />
+                      <span>Divergence signals detected: {divergenceCount.total}</span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="w-64">
+                    <p className="mb-2">
+                      <span className="inline-block w-3 h-3 rounded-full bg-red-500 mr-2"></span>
+                      <strong>{divergenceCount.inflowDown}</strong> net inflow up but price down signals
+                    </p>
+                    <p>
+                      <span className="inline-block w-3 h-3 rounded-full bg-green-600 mr-2"></span>
+                      <strong>{divergenceCount.outflowUp}</strong> net outflow down but price up signals
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <div className="flex items-center text-xs space-x-4">
+              <div className="flex items-center">
+                <span className="inline-block w-3 h-3 rounded-full bg-red-500 mr-1"></span>
+                <span>Buying pressure but price falling</span>
+              </div>
+              <div className="flex items-center">
+                <span className="inline-block w-3 h-3 rounded-full bg-green-600 mr-1"></span>
+                <span>Selling pressure but price rising</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

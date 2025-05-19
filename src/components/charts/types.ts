@@ -32,7 +32,15 @@ export interface PriceDataPoint {
 export interface CombinedDataPoint {
   timestamp: Date;
   netFlow: number;
+  normalizedNetFlow?: number;
   price: number;
   divergence?: boolean;
+  divergenceType?: 'inflow-price-down' | 'outflow-price-up';
   divergenceMessage?: string;
 }
+
+export enum DivergenceType {
+  INFLOW_PRICE_DOWN = 'inflow-price-down', // Net inflow positive but price drops
+  OUTFLOW_PRICE_UP = 'outflow-price-up'    // Net outflow negative but price rises
+}
+
