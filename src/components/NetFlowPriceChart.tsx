@@ -5,6 +5,7 @@ import { HistoricalPrice } from '@/services/priceService';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { InfoIcon } from "lucide-react";
 import { CombinedDataPoint, DivergenceType } from './charts/types';
+import * as PlotlyTypes from 'plotly.js-dist-min';
 
 interface NetFlowPriceChartProps {
   volumeData: VolumeData[];
@@ -233,7 +234,7 @@ const NetFlowPriceChart: React.FC<NetFlowPriceChartProps> = ({
           }));
         
         // Define layout with proper typing for shapes
-        const layout: Partial<Plotly.Layout> = {
+        const layout: Partial<PlotlyTypes.Layout> = {
           title: whaleMode ? 
             'ETH Net Inflow vs Price (Whale Trades Only)' : 
             'ETH Net Inflow vs Price (24h)',
@@ -274,7 +275,7 @@ const NetFlowPriceChart: React.FC<NetFlowPriceChartProps> = ({
         };
 
         // Add shapes for divergence zones
-        const shapes = combinedData.reduce((acc: Plotly.Shape[], point, i, arr) => {
+        const shapes = combinedData.reduce((acc: PlotlyTypes.Shape[], point, i, arr) => {
           if (point.divergence && i > 0) {
             const startTime = arr[i-1].timestamp;
             const endTime = point.timestamp;
