@@ -11,6 +11,7 @@ export interface VolumeData {
   volumeUSD: number;
   buyVolume?: number;
   sellVolume?: number;
+  swapCount?: number; // Added swapCount for trade count tracking
 }
 
 // Define the whale threshold in USD
@@ -30,6 +31,7 @@ const generateMockVolumeData = (whaleMode = false): VolumeData[] => {
     const swapCount = Math.floor(3 + Math.random() * 12);
     let hourlyBuyVolume = 0;
     let hourlySellVolume = 0;
+    let includedSwaps = 0;
     
     // Generate individual swaps
     for (let j = 0; j < swapCount; j++) {
@@ -39,6 +41,7 @@ const generateMockVolumeData = (whaleMode = false): VolumeData[] => {
       // Skip if whale mode is active and this isn't a whale trade
       if (whaleMode && swapVolume <= WHALE_THRESHOLD) continue;
       
+      includedSwaps++;
       const isBuy = Math.random() > 0.5;
       
       if (isBuy) {
@@ -56,7 +59,8 @@ const generateMockVolumeData = (whaleMode = false): VolumeData[] => {
         timestamp,
         volumeUSD: totalVolume,
         buyVolume: hourlyBuyVolume,
-        sellVolume: hourlySellVolume
+        sellVolume: hourlySellVolume,
+        swapCount: includedSwaps
       });
     }
   }
@@ -115,7 +119,7 @@ export const fetchUniswapVolume = async (whaleMode = false): Promise<VolumeData[
     
     // Process swaps to categorize by hour and buy/sell direction
     const swaps = data.data.swaps;
-    const hourlyData: Record<number, { buyVolume: number, sellVolume: number }> = {};
+    const hourlyData: Record<number, { buyVolume: number, sellVolume: number, swapCount: number }> = {};
     
     // Process each swap and categorize as buy or sell
     swaps.forEach((swap: any) => {
@@ -134,8 +138,10 @@ export const fetchUniswapVolume = async (whaleMode = false): Promise<VolumeData[
       }
       
       if (!hourlyData[hourTimestamp]) {
-        hourlyData[hourTimestamp] = { buyVolume: 0, sellVolume: 0 };
+        hourlyData[hourTimestamp] = { buyVolume: 0, sellVolume: 0, swapCount: 0 };
       }
+      
+      hourlyData[hourTimestamp].swapCount++;
       
       // In ETH/USDC pool, token0 is USDC, token1 is ETH
       // If USDC in and ETH out, it's a sell ETH
@@ -156,7 +162,8 @@ export const fetchUniswapVolume = async (whaleMode = false): Promise<VolumeData[
         timestamp: parseInt(timestamp),
         volumeUSD: volumes.buyVolume + volumes.sellVolume,
         buyVolume: volumes.buyVolume,
-        sellVolume: volumes.sellVolume
+        sellVolume: volumes.sellVolume,
+        swapCount: volumes.swapCount
       }));
     
     // Sort by timestamp
@@ -180,7 +187,8 @@ export const fetchUniswapVolume = async (whaleMode = false): Promise<VolumeData[
             timestamp: hourStart,
             volumeUSD: 0,
             buyVolume: 0,
-            sellVolume: 0
+            sellVolume: 0,
+            swapCount: 0
           });
         }
       }

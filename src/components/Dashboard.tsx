@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import PriceCard from "./PriceCard";
 import PriceChart from "./PriceChart";
@@ -225,7 +226,7 @@ const Dashboard = () => {
               </h3>
             </div>
             
-            <div className="h-80">
+            <div>
               {volumeError ? (
                 <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4">
                   {volumeError}
