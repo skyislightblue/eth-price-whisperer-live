@@ -232,8 +232,8 @@ const NetFlowPriceChart: React.FC<NetFlowPriceChartProps> = ({
             }
           }));
         
-        // Define layout
-        const layout = {
+        // Define layout with proper typing for shapes
+        const layout: Partial<Plotly.Layout> = {
           title: whaleMode ? 
             'ETH Net Inflow vs Price (Whale Trades Only)' : 
             'ETH Net Inflow vs Price (24h)',
@@ -269,11 +269,12 @@ const NetFlowPriceChart: React.FC<NetFlowPriceChartProps> = ({
           plot_bgcolor: 'rgba(0,0,0,0)',
           paper_bgcolor: 'rgba(0,0,0,0)',
           hovermode: 'closest',
-          annotations: annotations
+          annotations: annotations,
+          shapes: [] // Initialize with empty array
         };
 
         // Add shapes for divergence zones
-        const shapes = combinedData.reduce((acc: any[], point, i, arr) => {
+        const shapes = combinedData.reduce((acc: Plotly.Shape[], point, i, arr) => {
           if (point.divergence && i > 0) {
             const startTime = arr[i-1].timestamp;
             const endTime = point.timestamp;
