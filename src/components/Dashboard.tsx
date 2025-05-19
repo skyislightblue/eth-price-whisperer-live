@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import PriceCard from "./PriceCard";
 import PriceChart from "./PriceChart";
@@ -7,7 +6,7 @@ import VolumeRatioChart from "./VolumeRatioChart";
 import { fetchCurrentPrice, fetchHistoricalData } from "@/services/priceService";
 import { fetchUniswapVolume, VolumeData, WHALE_THRESHOLD } from "@/services/uniswapService";
 import { Button } from "@/components/ui/button";
-import { InfoIcon, SlashIcon, Toggle } from "lucide-react";
+import { InfoIcon } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
@@ -29,7 +28,7 @@ const Dashboard = () => {
   const [historicalData, setHistoricalData] = useState<HistoricalPrice[]>([]);
   const [volumeData, setVolumeData] = useState<VolumeData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [volumeLoading, setVolumeLoading] = useState<boolean>(true);
+  const [volumeLoading, setVolumeLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [volumeError, setVolumeError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
