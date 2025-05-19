@@ -13,8 +13,11 @@ export interface VolumeData {
   sellVolume?: number;
 }
 
+// Define the whale threshold in USD
+export const WHALE_THRESHOLD = 500000;
+
 // Function to generate mock volume data with buy/sell distinction
-const generateMockVolumeData = (): VolumeData[] => {
+const generateMockVolumeData = (whaleMode = false): VolumeData[] => {
   const data: VolumeData[] = [];
   const now = Date.now();
   const hourInMs = 60 * 60 * 1000;
@@ -22,26 +25,47 @@ const generateMockVolumeData = (): VolumeData[] => {
   // Generate 24 hours of mock data
   for (let i = 23; i >= 0; i--) {
     const timestamp = now - (i * hourInMs);
-    // Random volume between $500,000 and $5,000,000
-    const totalVolume = 500000 + Math.random() * 4500000;
-    // Split into buy/sell randomly (roughly equal but varies)
-    const buyPercentage = 0.3 + Math.random() * 0.4; // Between 30% and 70% buy
-    const buyVolume = totalVolume * buyPercentage;
-    const sellVolume = totalVolume * (1 - buyPercentage);
     
-    data.push({
-      timestamp,
-      volumeUSD: totalVolume,
-      buyVolume,
-      sellVolume
-    });
+    // Generate a number of swaps per hour (3-15)
+    const swapCount = Math.floor(3 + Math.random() * 12);
+    let hourlyBuyVolume = 0;
+    let hourlySellVolume = 0;
+    
+    // Generate individual swaps
+    for (let j = 0; j < swapCount; j++) {
+      // Random volume between $10,000 and $1,500,000
+      const swapVolume = 10000 + Math.random() * 1490000;
+      
+      // Skip if whale mode is active and this isn't a whale trade
+      if (whaleMode && swapVolume <= WHALE_THRESHOLD) continue;
+      
+      const isBuy = Math.random() > 0.5;
+      
+      if (isBuy) {
+        hourlyBuyVolume += swapVolume;
+      } else {
+        hourlySellVolume += swapVolume;
+      }
+    }
+    
+    const totalVolume = hourlyBuyVolume + hourlySellVolume;
+    
+    // Only add data point if there's volume (important for whale mode)
+    if (totalVolume > 0) {
+      data.push({
+        timestamp,
+        volumeUSD: totalVolume,
+        buyVolume: hourlyBuyVolume,
+        sellVolume: hourlySellVolume
+      });
+    }
   }
   
   return data;
 };
 
 // Function to fetch 24-hour trading volume for ETH/USDC pair with buy/sell distinction
-export const fetchUniswapVolume = async (): Promise<VolumeData[]> => {
+export const fetchUniswapVolume = async (whaleMode = false): Promise<VolumeData[]> => {
   try {
     // Get UTC timestamp for 24 hours ago
     const oneDayAgo = Math.floor((Date.now() - 24 * 60 * 60 * 1000) / 1000);
@@ -98,15 +122,20 @@ export const fetchUniswapVolume = async (): Promise<VolumeData[]> => {
       const timestamp = parseInt(swap.timestamp) * 1000; // Convert to milliseconds
       const hourTimestamp = Math.floor(timestamp / 3600000) * 3600000; // Group by hour
       
-      if (!hourlyData[hourTimestamp]) {
-        hourlyData[hourTimestamp] = { buyVolume: 0, sellVolume: 0 };
-      }
-      
       const amount0In = parseFloat(swap.amount0In || '0');
       const amount1Out = parseFloat(swap.amount1Out || '0');
       const amount1In = parseFloat(swap.amount1In || '0');
       const amount0Out = parseFloat(swap.amount0Out || '0');
       const amountUSD = parseFloat(swap.amountUSD || '0');
+      
+      // Skip if whale mode is active and this isn't a whale trade
+      if (whaleMode && amountUSD <= WHALE_THRESHOLD) {
+        return;
+      }
+      
+      if (!hourlyData[hourTimestamp]) {
+        hourlyData[hourTimestamp] = { buyVolume: 0, sellVolume: 0 };
+      }
       
       // In ETH/USDC pool, token0 is USDC, token1 is ETH
       // If USDC in and ETH out, it's a sell ETH
@@ -121,43 +150,50 @@ export const fetchUniswapVolume = async (): Promise<VolumeData[]> => {
     });
     
     // Convert to array format for the chart
-    const result: VolumeData[] = Object.entries(hourlyData).map(([timestamp, volumes]) => ({
-      timestamp: parseInt(timestamp),
-      volumeUSD: volumes.buyVolume + volumes.sellVolume,
-      buyVolume: volumes.buyVolume,
-      sellVolume: volumes.sellVolume
-    }));
+    const result: VolumeData[] = Object.entries(hourlyData)
+      .filter(([_, volumes]) => volumes.buyVolume > 0 || volumes.sellVolume > 0) // Filter out empty hours (important for whale mode)
+      .map(([timestamp, volumes]) => ({
+        timestamp: parseInt(timestamp),
+        volumeUSD: volumes.buyVolume + volumes.sellVolume,
+        buyVolume: volumes.buyVolume,
+        sellVolume: volumes.sellVolume
+      }));
     
     // Sort by timestamp
     result.sort((a, b) => a.timestamp - b.timestamp);
     
-    // Fill in any missing hours with zero volume
-    const completeHourlyData: VolumeData[] = [];
-    const startTime = oneDayAgo * 1000;
-    const endTime = Date.now();
-    
-    for (let time = startTime; time <= endTime; time += 3600000) {
-      const hourStart = Math.floor(time / 3600000) * 3600000;
-      const existingData = result.find(item => item.timestamp === hourStart);
+    // In whale mode, we don't fill empty hours because it makes more sense to see just the actual whale trades
+    if (!whaleMode) {
+      // Fill in any missing hours with zero volume
+      const completeHourlyData: VolumeData[] = [];
+      const startTime = oneDayAgo * 1000;
+      const endTime = Date.now();
       
-      if (existingData) {
-        completeHourlyData.push(existingData);
-      } else {
-        completeHourlyData.push({
-          timestamp: hourStart,
-          volumeUSD: 0,
-          buyVolume: 0,
-          sellVolume: 0
-        });
+      for (let time = startTime; time <= endTime; time += 3600000) {
+        const hourStart = Math.floor(time / 3600000) * 3600000;
+        const existingData = result.find(item => item.timestamp === hourStart);
+        
+        if (existingData) {
+          completeHourlyData.push(existingData);
+        } else {
+          completeHourlyData.push({
+            timestamp: hourStart,
+            volumeUSD: 0,
+            buyVolume: 0,
+            sellVolume: 0
+          });
+        }
       }
+      
+      return completeHourlyData;
     }
     
-    return completeHourlyData;
+    return result;
   } catch (error) {
     console.error("Error fetching Uniswap volume data:", error);
     
     // Return mock data instead of throwing an error
     console.log("Using mock volume data instead");
-    return generateMockVolumeData();
+    return generateMockVolumeData(whaleMode);
   }
 };

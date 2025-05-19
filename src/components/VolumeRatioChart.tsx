@@ -7,9 +7,10 @@ interface VolumeRatioChartProps {
     buyVolume?: number;
     sellVolume?: number;
   }[];
+  whaleMode?: boolean;
 }
 
-const VolumeRatioChart: React.FC<VolumeRatioChartProps> = ({ data }) => {
+const VolumeRatioChart: React.FC<VolumeRatioChartProps> = ({ data, whaleMode = false }) => {
   const chartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -35,6 +36,10 @@ const VolumeRatioChart: React.FC<VolumeRatioChartProps> = ({ data }) => {
         
         const timestamps = formattedData.map(item => item.timestamp);
         const ratios = formattedData.map(item => item.ratio);
+        
+        const title = whaleMode ? 
+          'ETH/USDC Buy/Sell Volume Ratio - Whale Trades Only (From Uniswap V3)' : 
+          'ETH/USDC Buy/Sell Volume Ratio (From Uniswap V3)';
         
         const ratioTrace = {
           x: timestamps,
@@ -75,7 +80,7 @@ const VolumeRatioChart: React.FC<VolumeRatioChartProps> = ({ data }) => {
           height: 300,
           margin: { t: 30, r: 30, l: 60, b: 60 },
           title: {
-            text: 'ETH/USDC Buy/Sell Volume Ratio',
+            text: title,
             font: {
               size: 14,
             }
@@ -125,7 +130,7 @@ const VolumeRatioChart: React.FC<VolumeRatioChartProps> = ({ data }) => {
     };
     
     loadPlotly();
-  }, [data]);
+  }, [data, whaleMode]);
 
   return <div ref={chartRef} className="w-full h-full" />;
 };

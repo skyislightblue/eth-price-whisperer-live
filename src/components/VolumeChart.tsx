@@ -8,9 +8,10 @@ interface VolumeChartProps {
     buyVolume?: number;
     sellVolume?: number;
   }[];
+  whaleMode?: boolean;
 }
 
-const VolumeChart: React.FC<VolumeChartProps> = ({ data }) => {
+const VolumeChart: React.FC<VolumeChartProps> = ({ data, whaleMode = false }) => {
   const chartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -52,11 +53,15 @@ const VolumeChart: React.FC<VolumeChartProps> = ({ data }) => {
           hovertemplate: '$%{y:.2f}<extra>Sell ETH</extra>'
         };
         
+        const title = whaleMode ? 
+          'Uniswap ETH Whale Trading Volume (From Uniswap V3)' : 
+          'Uniswap ETH Trading Volume (From Uniswap V3)';
+        
         const layout = {
           height: 300,
           margin: { t: 30, r: 30, l: 100, b: 60 },
           title: {
-            text: 'Uniswap ETH Trading Volume',
+            text: title,
             font: {
               size: 14,
             }
@@ -113,7 +118,7 @@ const VolumeChart: React.FC<VolumeChartProps> = ({ data }) => {
     };
     
     loadPlotly();
-  }, [data]);
+  }, [data, whaleMode]);
 
   return <div ref={chartRef} className="w-full h-full" />;
 };
