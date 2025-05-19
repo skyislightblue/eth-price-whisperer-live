@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { InfoIcon } from 'lucide-react';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
@@ -13,9 +13,22 @@ interface VolumeRatioChartProps {
   whaleMode?: boolean;
 }
 
+// Type for our formatted data
+interface FormattedDataItem {
+  timestamp: string;
+  ratio: number;
+  displayRatio: number;
+  buyVolume: number;
+  sellVolume: number;
+  totalVolume: number;
+  exceededCap: boolean;
+}
+
 const VolumeRatioChart: React.FC<VolumeRatioChartProps> = ({ data, whaleMode = false }) => {
   const chartRef = useRef<HTMLDivElement>(null);
   const barChartRef = useRef<HTMLDivElement>(null);
+  // State to store formatted data to use across the component
+  const [formattedData, setFormattedData] = useState<FormattedDataItem[]>([]);
 
   // Maximum ratio to display on the y-axis
   const MAX_RATIO_DISPLAY = 10;
@@ -28,7 +41,7 @@ const VolumeRatioChart: React.FC<VolumeRatioChartProps> = ({ data, whaleMode = f
         const Plotly = await import('plotly.js-dist-min');
         
         // Format timestamps for display and calculate ratios
-        const formattedData = data.map(item => {
+        const newFormattedData = data.map(item => {
           const date = new Date(item.timestamp);
           const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
           const buyVolume = item.buyVolume || 0;
@@ -50,9 +63,12 @@ const VolumeRatioChart: React.FC<VolumeRatioChartProps> = ({ data, whaleMode = f
           };
         });
         
-        const timestamps = formattedData.map(item => item.timestamp);
-        const ratios = formattedData.map(item => item.displayRatio);
-        const exceededCap = formattedData.map(item => item.exceededCap);
+        // Update the formatted data state
+        setFormattedData(newFormattedData);
+        
+        const timestamps = newFormattedData.map(item => item.timestamp);
+        const ratios = newFormattedData.map(item => item.displayRatio);
+        const exceededCap = newFormattedData.map(item => item.exceededCap);
         
         const title = whaleMode ? 
           'ETH/USDC Buy/Sell Volume Ratio - Whale Trades Only (From Uniswap V3)' : 
@@ -81,7 +97,7 @@ const VolumeRatioChart: React.FC<VolumeRatioChartProps> = ({ data, whaleMode = f
                         '<b>Buy/Sell Ratio</b>: %{customdata[0]:.2f}<br>' +
                         '<b>Total Volume</b>: $%{customdata[1]:,.2f}<br>' +
                         '<extra></extra>',
-          customdata: formattedData.map(item => [
+          customdata: newFormattedData.map(item => [
             item.ratio, // Original uncapped ratio
             item.totalVolume, // Total volume
           ])
@@ -159,7 +175,7 @@ const VolumeRatioChart: React.FC<VolumeRatioChartProps> = ({ data, whaleMode = f
             range: [0, MAX_RATIO_DISPLAY + 1], // Set Y-axis cap
             tickvals: [0, 0.5, 1, 2, 5, MAX_RATIO_DISPLAY],
           },
-          annotations: formattedData.map((item, i) => {
+          annotations: newFormattedData.map((item, i) => {
             if (item.exceededCap) {
               return {
                 x: timestamps[i],
