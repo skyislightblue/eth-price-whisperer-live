@@ -49,7 +49,7 @@ const PriceChart: React.FC<PriceChartProps> = ({ data }) => {
         
         const layout = {
           height: 300,
-          margin: { t: 10, r: 10, l: 50, b: 40 },
+          margin: { t: 10, r: 10, l: 80, b: 40 }, // Increased left margin for y-axis labels
           xaxis: {
             showgrid: false,
             zeroline: false,
@@ -59,7 +59,10 @@ const PriceChart: React.FC<PriceChartProps> = ({ data }) => {
             tickformat: '$.2f',
             title: {
               text: 'Price (USD)',
-              standoff: 10,
+              standoff: 25, // Increased standoff for title
+            },
+            tickfont: {
+              size: 10,
             },
             fixedrange: true,
           },
