@@ -40,12 +40,13 @@ export const fetchCurrentPrice = async (): Promise<CurrentPriceData> => {
   }
 };
 
-// Function to fetch historical ETH price data (last 24 hours, hourly)
+// Function to fetch historical ETH price data (last 24 hours)
 export const fetchHistoricalData = async (): Promise<HistoricalPrice[]> => {
   try {
-    // Get data for the last 24 hours (1 day) with hourly intervals
+    // Get data for the last 24 hours (1 day)
+    // Remove 'interval=hourly' which requires enterprise plan
     const response = await fetch(
-      "https://api.coingecko.com/api/v3/coins/ethereum/market_chart?vs_currency=usd&days=1&interval=hourly"
+      "https://api.coingecko.com/api/v3/coins/ethereum/market_chart?vs_currency=usd&days=1"
     );
     
     if (!response.ok) {
