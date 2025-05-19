@@ -27,7 +27,7 @@ const TradesBarChart: React.FC<TradesBarChartProps> = ({ formattedData, title })
           height: 320, // Increased from 300 to give more space
           margin: { t: 60, r: 40, l: 60, b: 100 }, // Increased top margin to ensure title is visible
           title: {
-            text: title,
+            text: title.includes("Uniswap") ? title : `${title} (Uniswap)`, // Add Uniswap label if not already present
             font: {
               size: 14,
             },

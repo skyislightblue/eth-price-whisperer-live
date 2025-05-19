@@ -19,9 +19,9 @@ const NetFlowChartLegend: React.FC<NetFlowChartLegendProps> = ({
   }
 
   return (
-    <div className="mt-4 text-sm text-gray-600">
-      <div className="flex items-center justify-end mr-8"> {/* Moved to right side of chart */}
-        <div className="flex items-center space-x-6 mb-4">
+    <div className="mt-2 mb-6 text-sm text-gray-600"> {/* 增加底部外边距 */}
+      <div className="flex items-center justify-end mr-8">
+        <div className="flex items-center space-x-6 mb-2">
           <div className="flex items-center">
             <span className="inline-block w-3 h-3 rounded-full bg-red-500 mr-2"></span>
             <span>Buying pressure but price falling</span>
