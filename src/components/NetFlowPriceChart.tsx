@@ -41,7 +41,7 @@ const NetFlowPriceChart: React.FC<NetFlowPriceChartProps> = ({
         Net ETH Flow vs Price (Uniswap)
       </h3>
       
-      <div className="flex-grow">
+      <div className="flex-grow" style={{ height: '500px' }}> {/* 增加高度，确保图表有足够的空间 */}
         {hasData && combinedData.length > 0 ? (
           <NetFlowPlotlyChart 
             combinedData={combinedData} 
