@@ -35,13 +35,13 @@ const NetFlowPriceChart: React.FC<NetFlowPriceChartProps> = ({
   const hasData = volumeData.length > 0 && priceData.length > 0;
 
   return (
-    <div className="h-full flex flex-col relative mb-28"> {/* 增加底部外边距，从mb-20到mb-28增加50% */}
+    <div className="h-full flex flex-col relative mb-20"> {/* 增加底部外边距，从mb-12到mb-20增加50% */}
       {/* Chart title moved here from plotly component */}
       <h3 className="text-xl font-medium text-gray-800 mb-2 text-center">
         Net ETH Flow vs Price (Uniswap)
       </h3>
       
-      <div className="flex-grow" style={{ height: '500px' }}> {/* 增加高度，确保图表有足够的空间 */}
+      <div className="flex-grow">
         {hasData && combinedData.length > 0 ? (
           <NetFlowPlotlyChart 
             combinedData={combinedData} 
