@@ -1,8 +1,6 @@
 
 # ETH tracker
 
-**URL**: [https://skyislightblue.github.io/eth-tracker/](https://skyislightblue.github.io/eth-tracker/)
-
 This is a lightweight Ethereum market dashboard that combines off-chain and on-chain data to help users monitor short-term ETH market activity in real time.
 
 ## 🔍 Features
