@@ -1,73 +1,33 @@
-# Welcome to your Lovable project
 
-## Project info
+# ETH tracker
 
-**URL**: https://lovable.dev/projects/54939e00-3824-4bdf-b622-7da7ac92961d
+**URL**: [https://skyislightblue.github.io/eth-tracker/](https://skyislightblue.github.io/eth-tracker/)
 
-## How can I edit this code?
+This is a lightweight Ethereum market dashboard that combines off-chain and on-chain data to help users monitor short-term ETH market activity in real time.
 
-There are several ways of editing your application.
+## 🔍 Features
+The tracker includes four core visualizations:
 
-**Use Lovable**
+- *24-Hour Price History*
+  - Real-time ETH price chart sourced from the [CoinGecko API](https://www.coingecko.com/)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/54939e00-3824-4bdf-b622-7da7ac92961d) and start prompting.
+- *Net ETH Flow (Uniswap) vs Price*
+  - Visualizes net ETH inflow/outflow on Uniswap alongside market price to reflect liquidity dynamics
 
-Changes made via Lovable will be committed automatically to this repo.
+- *24-Hour ETH/USDC Trading Volume (Uniswap)*
+  - Displays total trading volume for the ETH/USDC pair on Uniswap over the past 24 hours
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/54939e00-3824-4bdf-b622-7da7ac92961d) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- *ETH/USDC Buy/Sell Volume Ratio (Uniswap)*
+  - Estimates market sentiment by comparing buy vs. sell volume for ETH/USDC trades on Uniswap
+ 
+## ⚙️ Tech Stack
+- Frontend:
+  - Vite
+  - TypeScript
+  - React
+  - Tailwind CSS
+  - shadcn/ui
+    
+- Data Sources:
+  - *ETH price:* [CoinGecko API](https://www.coingecko.com/en/api)
+  - *Uniswap on-chain data:* [The Graph](https://thegraph.com/)
