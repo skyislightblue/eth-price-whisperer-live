@@ -58,8 +58,8 @@ const VolumeChart: React.FC<VolumeChartProps> = ({ data, whaleMode = false }) =>
         };
         
         const title = whaleMode ? 
-          'Uniswap ETH Whale Trading Volume (From Uniswap V3)' : 
-          'Uniswap ETH Trading Volume (From Uniswap V3)';
+          'Uniswap ETH Whale Trading Volume (from Uniswap V3)' : 
+          'Uniswap ETH Trading Volume (from Uniswap V3)';
         
         const layout = {
           height: 340, // Increased height from 300 to 340

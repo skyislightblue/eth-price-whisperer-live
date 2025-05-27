@@ -43,7 +43,7 @@ const Header = () => {
           </svg>
           <h1 className="text-xl font-semibold text-gray-800">ETH Price Tracker</h1>
         </div>
-        <div className="text-sm text-gray-500">Data from CoinGecko API</div>
+        <div className="text-sm text-gray-500">Data from CoinGecko & Uniswap APIs</div>
       </div>
     </header>
   );

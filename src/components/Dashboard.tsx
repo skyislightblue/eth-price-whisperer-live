@@ -23,6 +23,7 @@ interface PriceData {
 const Dashboard = () => {
   const [priceData, setPriceData] = useState<PriceData | null>(null);
   const [historicalData, setHistoricalData] = useState<HistoricalPrice[]>([]);
+  const [isHistoricalDataMock, setIsHistoricalDataMock] = useState<boolean>(false);
   const [volumeData, setVolumeData] = useState<VolumeData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [volumeLoading, setVolumeLoading] = useState<boolean>(false);
@@ -43,8 +44,10 @@ const Dashboard = () => {
       setPriceData(currentData);
       
       // Fetch historical price data
-      const historicalPrices = await fetchHistoricalData();
-      setHistoricalData(historicalPrices);
+      const historicalResponse = await fetchHistoricalData();
+    setHistoricalData(historicalResponse.data);
+    setIsHistoricalDataMock(historicalResponse.isMockData);
+      // Historical data already set above
       
       setLastUpdated(new Date());
       setError(null);
@@ -171,7 +174,7 @@ const Dashboard = () => {
             <h3 className="text-lg font-medium text-gray-800 mb-4">24 Hour Price History</h3>
             <div className="h-80">
               {historicalData.length > 0 ? (
-                <PriceChart data={historicalData} />
+                <PriceChart data={historicalData} isMockData={isHistoricalDataMock} />
               ) : (
                 <div className="h-full flex items-center justify-center text-gray-500">
                   Loading chart data...
@@ -184,7 +187,7 @@ const Dashboard = () => {
           <div className="bg-white rounded-lg shadow p-4">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-medium text-gray-800">
-                Net ETH Flow vs Price
+                ETH Net Flow (Uniswap) vs Price (CoinGecko)
                 {whaleMode && <span className="ml-2 bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded">Whale Mode Active</span>}
               </h3>
             </div>
@@ -216,7 +219,7 @@ const Dashboard = () => {
           <div className="bg-white rounded-lg shadow p-4">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-medium text-gray-800">
-                24 Hour ETH/USDC Trading Volume
+                24 Hour ETH/USDC Trading Volume (from Uniswap)
                 {whaleMode && <span className="ml-2 bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded">Whale Mode Active</span>}
               </h3>
               
@@ -254,7 +257,7 @@ const Dashboard = () => {
           <div className="bg-white rounded-lg shadow p-4">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-medium text-gray-800">
-                ETH/USDC Buy/Sell Volume Ratio
+                ETH/USDC Buy/Sell Volume Ratio (from Uniswap)
                 {whaleMode && <span className="ml-2 bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded">Whale Mode Active</span>}
               </h3>
             </div>

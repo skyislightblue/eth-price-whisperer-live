@@ -28,8 +28,8 @@ const VolumeRatioChart: React.FC<VolumeRatioChartProps> = ({ data, whaleMode = f
 
   const hasExceededCap = formattedData.some(item => item.exceededCap);
   const ratioChartTitle = whaleMode ? 
-    'ETH/USDC Buy/Sell Volume Ratio - Whale Trades Only (From Uniswap V3)' : 
-    'ETH/USDC Buy/Sell Volume Ratio (From Uniswap V3)';
+    'ETH/USDC Buy/Sell Volume Ratio - Whale Trades Only (from Uniswap V3)' : 
+    'ETH/USDC Buy/Sell Volume Ratio (from Uniswap V3)';
   
   const tradeChartTitle = whaleMode ? 
     'Number of Whale Trades Per Hour (Uniswap)' : 

@@ -90,8 +90,8 @@ const NetFlowPlotlyChart: React.FC<NetFlowPlotlyChartProps> = ({
         // Define layout
         const layout: Partial<PlotlyTypes.Layout> = {
           title: null, // Remove title from chart itself - will be in parent component
-          height: 400,
-          margin: { t: 30, r: 80, l: 80, b: 70 }, 
+          height: 300,
+          margin: { t: 10, r: 80, l: 80, b: 40 }, 
           xaxis: {
             title: {
               text: 'Time (UTC)',
@@ -141,7 +141,7 @@ const NetFlowPlotlyChart: React.FC<NetFlowPlotlyChartProps> = ({
           legend: {
             orientation: 'h',
             y: -0.2,
-            x: 0.5,
+            x: 0.25,
             xanchor: 'center',
             yanchor: 'top',
             bgcolor: 'rgba(255,255,255,0.5)',

@@ -7,9 +7,12 @@ interface PriceChartProps {
     timestamp: number;
     price: number;
   }[];
+  isMockData: boolean;
 }
 
-const PriceChart: React.FC<PriceChartProps> = ({ data }) => {
+import DataStatusBadge from './DataStatusBadge';
+
+const PriceChart: React.FC<PriceChartProps> = ({ data, isMockData }) => {
   const chartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -53,6 +56,10 @@ const PriceChart: React.FC<PriceChartProps> = ({ data }) => {
           xaxis: {
             showgrid: false,
             zeroline: false,
+            title: {
+              text: 'Time (UTC)',
+              standoff: 10
+            },
           },
           yaxis: {
             range: [minPrice, maxPrice],
@@ -91,7 +98,12 @@ const PriceChart: React.FC<PriceChartProps> = ({ data }) => {
     loadPlotly();
   }, [data]);
 
-  return <div ref={chartRef} className="w-full h-full" />;
+  return (
+    <div className="relative w-full h-full">
+      <DataStatusBadge isMockData={isMockData} />
+      <div ref={chartRef} className="w-full h-full" />
+    </div>
+  );
 };
 
 export default PriceChart;

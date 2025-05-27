@@ -86,7 +86,12 @@ export const fetchCurrentPrice = async (): Promise<CurrentPriceData> => {
 };
 
 // Function to fetch historical ETH price data (last 24 hours)
-export const fetchHistoricalData = async (): Promise<HistoricalPrice[]> => {
+export interface HistoricalDataResponse {
+  data: HistoricalPrice[];
+  isMockData: boolean;
+}
+
+export const fetchHistoricalData = async (): Promise<HistoricalDataResponse> => {
   try {
     // Get data for the last 24 hours (1 day)
     const response = await fetch(
@@ -105,15 +110,21 @@ export const fetchHistoricalData = async (): Promise<HistoricalPrice[]> => {
     const data = await response.json();
     
     // Format the price data
-    return data.prices.map((item: [number, number]) => ({
-      timestamp: item[0],
-      price: item[1],
-    }));
+    return {
+      data: data.prices.map((item: [number, number]) => ({
+        timestamp: item[0],
+        price: item[1],
+      })),
+      isMockData: false
+    };
   } catch (error) {
     console.error("Error fetching historical data:", error);
     
     // Return mock data instead of throwing
     console.log("Using mock historical data");
-    return generateMockHistoricalData();
+    return {
+      data: generateMockHistoricalData(),
+      isMockData: true
+    };
   }
 };
